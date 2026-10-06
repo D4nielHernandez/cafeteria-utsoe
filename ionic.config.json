@@ -1,0 +1,7 @@
+{
+  "name": "cafeteria-utsoe",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
