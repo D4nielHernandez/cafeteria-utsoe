@@ -1,5 +1,4 @@
-import { collection, doc, onSnapshot, writeBatch } from 'firebase/firestore';
-import { db } from '../firebase';
+import { addDoc, collection, doc, onSnapshot, updateDoc, writeBatch } from 'firebase/firestore';import { db } from '../firebase';
 import { Producto } from '../models/types';
 
 export function suscribirProductos(
@@ -44,4 +43,12 @@ export async function cargarProductosEjemplo() {
   const batch = writeBatch(db);
   EJEMPLO.forEach((p) => batch.set(doc(collection(db, 'products')), p));
   await batch.commit();
+}
+
+export async function cambiarDisponibilidad(id: string, disponible: boolean) {
+  await updateDoc(doc(db, 'products', id), { disponible });
+}
+
+export async function crearProducto(p: Omit<Producto, 'id'>) {
+  await addDoc(collection(db, 'products'), p);
 }

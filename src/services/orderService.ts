@@ -1,13 +1,15 @@
 import {
   addDoc,
   collection,
+  doc,
   onSnapshot,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { ItemPedido, Pedido } from '../models/types';
+import { EstadoPedido, ItemPedido, Pedido } from '../models/types';
 
 export async function crearPedido(
   userId: string,
@@ -46,4 +48,26 @@ export function suscribirMisPedidos(
     },
     onError
   );
+}
+
+export function suscribirTodosPedidos(
+  onData: (pedidos: Pedido[]) => void,
+  onError: (e: unknown) => void
+) {
+  return onSnapshot(
+    collection(db, 'orders'),
+    (snap) => {
+      const lista = snap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data({ serverTimestamps: 'estimate' }) as Omit<Pedido, 'id'>),
+      }));
+      lista.sort((a, b) => (b.creadoEn?.toMillis() ?? 0) - (a.creadoEn?.toMillis() ?? 0));
+      onData(lista);
+    },
+    onError
+  );
+}
+
+export async function actualizarEstado(id: string, status: EstadoPedido) {
+  await updateDoc(doc(db, 'orders', id), { status });
 }

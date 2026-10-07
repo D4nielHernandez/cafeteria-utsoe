@@ -12,11 +12,12 @@ import {
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { cart, person, receipt, restaurant } from 'ionicons/icons';
+import { cart, person, receipt, restaurant, shieldCheckmark } from 'ionicons/icons';
 import Tab1 from './pages/Tab1';
 import Tab3 from './pages/Tab3';
 import Carrito from './pages/Carrito';
 import Pedidos from './pages/Pedidos';
+import Admin from './pages/Admin';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
@@ -54,8 +55,9 @@ import './theme/variables.css';
 setupIonicReact();
 
 const Contenido: React.FC = () => {
-  const { user, cargando } = useAuth();
+  const { user, perfil, cargando } = useAuth();
   const { cantidadTotal } = useCart();
+  const esAdmin = perfil?.role === 'admin';
 
   if (cargando) {
     return (
@@ -90,6 +92,10 @@ const Contenido: React.FC = () => {
           <Route path="/tab1" element={<Tab1 />} />
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/pedidos" element={<Pedidos />} />
+          <Route
+            path="/admin"
+            element={esAdmin ? <Admin /> : <Navigate to="/tab1" replace />}
+          />
           <Route path="/tab3" element={<Tab3 />} />
           <Route path="/login" element={<Navigate to="/tab1" replace />} />
           <Route path="/" element={<Navigate to="/tab1" replace />} />
@@ -108,6 +114,12 @@ const Contenido: React.FC = () => {
             <IonIcon aria-hidden="true" icon={receipt} />
             <IonLabel>Pedidos</IonLabel>
           </IonTabButton>
+          {esAdmin && (
+            <IonTabButton tab="admin" href="/admin">
+              <IonIcon aria-hidden="true" icon={shieldCheckmark} />
+              <IonLabel>Admin</IonLabel>
+            </IonTabButton>
+          )}
           <IonTabButton tab="tab3" href="/tab3">
             <IonIcon aria-hidden="true" icon={person} />
             <IonLabel>Perfil</IonLabel>
