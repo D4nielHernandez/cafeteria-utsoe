@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   IonBadge,
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -17,7 +18,8 @@ import {
   IonToolbar,
   useIonToast,
 } from '@ionic/react';
-import { addCircleOutline } from 'ionicons/icons';
+import { addCircleOutline, barcodeOutline, informationCircleOutline } from 'ionicons/icons';
+import InfoNutricional from '../components/InfoNutricional';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Producto } from '../models/types';
@@ -35,6 +37,8 @@ const Tab1: React.FC = () => {
   const [error, setError] = useState('');
   const [categoria, setCategoria] = useState('Todos');
   const [cargandoEjemplo, setCargandoEjemplo] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [codigoModal, setCodigoModal] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const cancelar = suscribirProductos(
@@ -68,6 +72,11 @@ const Tab1: React.FC = () => {
     });
   };
 
+  const abrirInfo = (codigo?: string) => {
+    setCodigoModal(codigo);
+    setModalAbierto(true);
+  };
+
   const cargarEjemplo = async () => {
     setCargandoEjemplo(true);
     setError('');
@@ -87,6 +96,14 @@ const Tab1: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>Menú</IonTitle>
+          <IonButtons slot="end">
+            <IonButton
+              aria-label="Consultar un código de barras"
+              onClick={() => abrirInfo(undefined)}
+            >
+              <IonIcon slot="icon-only" icon={barcodeOutline} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
         {productos.length > 0 && (
           <IonToolbar>
@@ -131,8 +148,8 @@ const Tab1: React.FC = () => {
 
         <IonList>
           {visibles.map((p) => (
-            <IonItem key={p.id} disabled={!p.disponible}>
-              <IonLabel>
+            <IonItem key={p.id}>
+              <IonLabel color={p.disponible ? undefined : 'medium'}>
                 <h2>{p.nombre}</h2>
                 <p>{p.descripcion}</p>
               </IonLabel>
@@ -144,6 +161,16 @@ const Tab1: React.FC = () => {
                   </div>
                 )}
               </div>
+              {p.codigoBarras && (
+                <IonButton
+                  slot="end"
+                  fill="clear"
+                  aria-label={`Información nutricional de ${p.nombre}`}
+                  onClick={() => abrirInfo(p.codigoBarras)}
+                >
+                  <IonIcon slot="icon-only" icon={informationCircleOutline} />
+                </IonButton>
+              )}
               {p.disponible && (
                 <IonButton
                   slot="end"
@@ -158,6 +185,12 @@ const Tab1: React.FC = () => {
           ))}
         </IonList>
       </IonContent>
+
+      <InfoNutricional
+        abierto={modalAbierto}
+        codigoInicial={codigoModal}
+        onCerrar={() => setModalAbierto(false)}
+      />
     </IonPage>
   );
 };

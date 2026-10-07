@@ -1,4 +1,13 @@
-import { addDoc, collection, doc, onSnapshot, updateDoc, writeBatch } from 'firebase/firestore';import { db } from '../firebase';
+import {
+  addDoc,
+  collection,
+  deleteField,
+  doc,
+  onSnapshot,
+  updateDoc,
+  writeBatch,
+} from 'firebase/firestore';
+import { db } from '../firebase';
 import { Producto } from '../models/types';
 
 export function suscribirProductos(
@@ -51,4 +60,11 @@ export async function cambiarDisponibilidad(id: string, disponible: boolean) {
 
 export async function crearProducto(p: Omit<Producto, 'id'>) {
   await addDoc(collection(db, 'products'), p);
+}
+
+/** Guarda el código de barras; si llega vacío, lo elimina del producto. */
+export async function actualizarCodigoBarras(id: string, codigo: string) {
+  await updateDoc(doc(db, 'products', id), {
+    codigoBarras: codigo ? codigo : deleteField(),
+  });
 }

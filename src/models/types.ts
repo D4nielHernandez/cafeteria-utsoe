@@ -15,6 +15,7 @@ export interface Producto {
   precio: number;
   categoria: string;
   disponible: boolean;
+  codigoBarras?: string;
 }
 
 export type EstadoPedido =
@@ -39,4 +40,26 @@ export interface Pedido {
   total: number;
   status: EstadoPedido;
   creadoEn: Timestamp | null;
+}
+
+export interface ProductoOFF {
+  codigo: string;
+  nombre: string;
+  marca: string;
+  cantidad: string;
+  porcion: string;
+  imagen: string;
+  nutriscore: string | null;
+  nova: number | null;
+  ingredientes: string;
+  alergenos: string[];
+  nutrientes: {
+    energiaKcal: number | null;
+    grasas: number | null;
+    grasasSaturadas: number | null;
+    carbohidratos: number | null;
+    azucares: number | null;
+    proteinas: number | null;
+    sal: number | null;
+  };
 }

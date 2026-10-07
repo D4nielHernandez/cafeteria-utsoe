@@ -25,8 +25,10 @@ import {
 } from '@ionic/react';
 import { EstadoPedido, Pedido, Producto } from '../models/types';
 import { mensajeError } from '../services/authService';
+import { codigoValido } from '../services/foodFactsService';
 import { actualizarEstado, suscribirTodosPedidos } from '../services/orderService';
 import {
+  actualizarCodigoBarras,
   cambiarDisponibilidad,
   crearProducto,
   suscribirProductos,
@@ -126,6 +128,7 @@ const Admin: React.FC = () => {
         { name: 'descripcion', placeholder: 'Descripción' },
         { name: 'precio', type: 'number', placeholder: 'Precio (MXN)', min: 1 },
         { name: 'categoria', placeholder: 'Categoría (Bebidas, Comida, Snacks)' },
+        { name: 'codigoBarras', placeholder: 'Código de barras (opcional)' },
       ],
       buttons: [
         'Cancelar',
@@ -134,10 +137,15 @@ const Admin: React.FC = () => {
           handler: (d: Record<string, string>) => {
             const nombre = (d.nombre ?? '').trim();
             const categoria = (d.categoria ?? '').trim();
+            const codigo = (d.codigoBarras ?? '').trim();
             const precio = Number(d.precio);
             if (!nombre || !categoria || !Number.isFinite(precio) || precio <= 0) {
               aviso('Revisa los datos: nombre, categoría y un precio mayor a 0.');
               return false; // mantiene la ventana abierta
+            }
+            if (codigo && !codigoValido(codigo)) {
+              aviso('El código de barras debe tener de 8 a 14 dígitos, solo números.');
+              return false;
             }
             ejecutar(async () => {
               await crearProducto({
@@ -146,8 +154,36 @@ const Admin: React.FC = () => {
                 precio,
                 categoria,
                 disponible: true,
+                ...(codigo ? { codigoBarras: codigo } : {}),
               });
               aviso('Producto agregado', 'success');
+            });
+            return true;
+          },
+        },
+      ],
+    });
+
+  const editarCodigo = (p: Producto) =>
+    mostrarAlerta({
+      header: 'Código de barras',
+      message: p.nombre,
+      inputs: [
+        { name: 'codigo', value: p.codigoBarras ?? '', placeholder: 'Déjalo vacío para quitarlo' },
+      ],
+      buttons: [
+        'Cancelar',
+        {
+          text: 'Guardar',
+          handler: (d: Record<string, string>) => {
+            const codigo = (d.codigo ?? '').trim();
+            if (codigo && !codigoValido(codigo)) {
+              aviso('El código de barras debe tener de 8 a 14 dígitos, solo números.');
+              return false;
+            }
+            ejecutar(async () => {
+              await actualizarCodigoBarras(p.id, codigo);
+              aviso('Código actualizado', 'success');
             });
             return true;
           },
@@ -261,7 +297,11 @@ const Admin: React.FC = () => {
                     <p>
                       {p.categoria} · {moneda.format(p.precio)}
                     </p>
+                    <p>Código: {p.codigoBarras ?? 'sin código'}</p>
                   </IonLabel>
+                  <IonButton slot="end" fill="clear" size="small" onClick={() => editarCodigo(p)}>
+                    Código
+                  </IonButton>
                   <IonToggle
                     checked={p.disponible}
                     onIonChange={(e) => {
