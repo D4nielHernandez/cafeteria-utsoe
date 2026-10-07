@@ -4,6 +4,7 @@ import {
   IonButton,
   IonContent,
   IonHeader,
+  IonIcon,
   IonItem,
   IonLabel,
   IonList,
@@ -14,8 +15,11 @@ import {
   IonText,
   IonTitle,
   IonToolbar,
+  useIonToast,
 } from '@ionic/react';
+import { addCircleOutline } from 'ionicons/icons';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { Producto } from '../models/types';
 import { mensajeError } from '../services/authService';
 import { cargarProductosEjemplo, suscribirProductos } from '../services/productService';
@@ -24,6 +28,8 @@ const moneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MX
 
 const Tab1: React.FC = () => {
   const { perfil } = useAuth();
+  const { agregar } = useCart();
+  const [mostrarToast] = useIonToast();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -52,6 +58,15 @@ const Tab1: React.FC = () => {
 
   const visibles =
     categoria === 'Todos' ? productos : productos.filter((p) => p.categoria === categoria);
+
+  const agregarAlCarrito = (p: Producto) => {
+    agregar(p);
+    mostrarToast({
+      message: `${p.nombre} agregado al carrito`,
+      duration: 1200,
+      position: 'top',
+    });
+  };
 
   const cargarEjemplo = async () => {
     setCargandoEjemplo(true);
@@ -129,6 +144,16 @@ const Tab1: React.FC = () => {
                   </div>
                 )}
               </div>
+              {p.disponible && (
+                <IonButton
+                  slot="end"
+                  fill="clear"
+                  aria-label={`Agregar ${p.nombre} al carrito`}
+                  onClick={() => agregarAlCarrito(p)}
+                >
+                  <IonIcon slot="icon-only" icon={addCircleOutline} />
+                </IonButton>
+              )}
             </IonItem>
           ))}
         </IonList>
